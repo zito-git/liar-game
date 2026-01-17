@@ -6,12 +6,11 @@ import {
   HttpStatus,
   Logger,
 } from '@nestjs/common';
-
 import { Request, Response } from 'express';
 
 @Catch()
-export class GlobalFilter implements ExceptionFilter {
-  private readonly logger = new Logger(GlobalFilter.name);
+export class GlobalExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger(GlobalExceptionFilter.name);
 
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
@@ -22,26 +21,27 @@ export class GlobalFilter implements ExceptionFilter {
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
-    let customMessage = 'INTERNAL_SERVER_ERROR';
+    let customMessage: string = 'INTERNAL_SERVER_ERROR';
 
-    //일반 에러
-    if (
-      exception instanceof HttpException &&
-      status != HttpStatus.INTERNAL_SERVER_ERROR
-    ) {
-      const res = exception.getResponse();
-      customMessage = typeof res === 'string' ? res : res['message'][0];
+    //500 에러
+    if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
+      this.logger.error(
+        `[${request.method}] ${request.url}`,
+        exception instanceof Error
+          ? exception.stack
+          : JSON.stringify(exception),
+      );
     }
 
-    //서버 에러
-    if (
-      exception instanceof HttpException &&
-      status == HttpStatus.INTERNAL_SERVER_ERROR
-    ) {
-      this.logger.error(
-        `[${request.method}] ${request.url} - ${exception instanceof Error ? exception.message : 'Unknown error'}`,
-        exception instanceof Error ? exception.stack : undefined,
-      );
+    //400 에러
+    if (exception instanceof HttpException && status !== 500) {
+      const res = exception.getResponse();
+      customMessage =
+        typeof res === 'string'
+          ? res
+          : Array.isArray(res['message'])
+            ? res['message'][0]
+            : res['message'];
     }
 
     response.status(status).json({
