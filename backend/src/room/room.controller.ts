@@ -22,4 +22,10 @@ export class RoomController {
   quitRoom(@Query('roomId') roomId: string) {
     return this.roomService.quitRoom(roomId);
   }
+
+  @Get('nickname')
+  @HttpCode(HttpStatus.OK)
+  createNickname(@Query('id') nickname: string) {
+    return this.roomService.createNickname(nickname);
+  }
 }

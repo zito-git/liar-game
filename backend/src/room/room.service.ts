@@ -4,6 +4,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { randomUUID } from 'crypto';
+import { CustomJwtModule } from 'src/jwt/custom-jwt.module';
+import { CustomJwtService } from 'src/jwt/custom-jwt.service';
 import { RedisService } from 'src/redis/redis.service';
 
 enum RoomStatus {
@@ -14,7 +16,10 @@ enum RoomStatus {
 
 @Injectable()
 export class RoomService {
-  constructor(private readonly redis: RedisService) {}
+  constructor(
+    private readonly redis: RedisService,
+    private readonly jwt: CustomJwtService,
+  ) {}
 
   async createRoom(): Promise<{ roomId: string }> {
     const uuidRoom: string = randomUUID();
@@ -52,7 +57,7 @@ export class RoomService {
 
     await this.redis.client.hincrby(key, 'players', 1);
 
-    return { roomJoin: true, players: players + 1, maxPlayers };
+    return { roomId, roomJoin: true, players: players + 1, maxPlayers };
   }
 
   async quitRoom(roomId: string) {
@@ -77,6 +82,14 @@ export class RoomService {
       return { roomDeleted: true, players: 0, maxPlayers };
     }
 
-    return { roomDeleted: false, players, maxPlayers };
+    return { roomId, roomDeleted: false, players, maxPlayers };
+  }
+
+  async createNickname(nickname: string) {
+    const result = {
+      nickname,
+      Authorization: await this.jwt.createJwt(nickname),
+    };
+    return result;
   }
 }
