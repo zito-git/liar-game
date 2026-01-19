@@ -11,4 +11,13 @@ export class CustomJwtService {
 
     return 'Bearer ' + result;
   }
+
+  async verifyJwt(token: string) {
+    try {
+      const result = token.split(' ');
+      return await this.jwtService.verifyAsync(result[1]);
+    } catch {
+      return null;
+    }
+  }
 }
