@@ -52,6 +52,7 @@ export default function GameRoom() {
   const [gameInfo, setGameInfo] = useState<GameInfo | null>(null);
   const [gameStarted, setGameStarted] = useState(false);
   const [users, setUsers] = useState<string[]>([]);
+  const [maxPlayers, setMaxPlayers] = useState<number>(0);
   const [revealData, setRevealData] = useState<RevealData | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -81,6 +82,7 @@ export default function GameRoom() {
     socket.on("join_success", (data) => {
       setConnected(true);
       setUsers(data.members ?? [userSession.nickname]);
+      if (data.maxPlayers) setMaxPlayers(data.maxPlayers);
       addMsg("system", `✅ 방 입장 성공 (${data.roomId})`);
     });
 
@@ -264,7 +266,7 @@ export default function GameRoom() {
           <div className="bg-white/50 backdrop-blur-sm rounded-2xl px-4 py-2.5 mb-3 shadow border border-white/80 flex-shrink-0">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider flex-shrink-0">
-                참여자 {users.length}명
+                참여자 {users.length}{maxPlayers > 0 ? `/${maxPlayers}` : ""}명
               </span>
               {users.map((name) => (
                 <span
