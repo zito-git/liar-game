@@ -4,6 +4,11 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "라이어 게임",
   description: "친구들과 함께 즐기는 라이어 찾기 게임",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+  },
 };
 
 export default function RootLayout({
