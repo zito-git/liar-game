@@ -7,6 +7,12 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalFilters(new GlobalExceptionFilter());
 
+  app.enableCors({
+    origin: '*', // 모든 도메인 허용
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true, // 쿠키 등 인증 허용
+  });
+
   const config = new DocumentBuilder()
     .setTitle('Room API')
     .setDescription('Room 관리 API 문서')
