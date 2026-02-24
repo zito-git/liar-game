@@ -13,6 +13,17 @@ interface ChatMessage {
   type: "system" | "chat";
   nickname?: string;
   text: string;
+  time?: string;
+}
+
+function toKSTTime(time?: string): string {
+  const date = time ? new Date(time) : new Date();
+  return date.toLocaleTimeString("ko-KR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "Asia/Seoul",
+  });
 }
 
 interface GameInfo {
@@ -56,8 +67,8 @@ export default function GameRoom() {
     const userSession: UserSession = JSON.parse(stored);
     setSession(userSession);
 
-    const addMsg = (type: "system" | "chat", text: string, nickname?: string) => {
-      setMessages((prev) => [...prev, { type, text, nickname }]);
+    const addMsg = (type: "system" | "chat", text: string, nickname?: string, time?: string) => {
+      setMessages((prev) => [...prev, { type, text, nickname, time }]);
     };
 
     const socket = io("http://localhost:80/game", { transports: ["websocket"] });
@@ -89,7 +100,7 @@ export default function GameRoom() {
     });
 
     socket.on("chat_message", (data) => {
-      addMsg("chat", data.message, data.nickname);
+      addMsg("chat", data.message, data.nickname, toKSTTime(data.time));
     });
 
     socket.on("game_started", () => {
@@ -154,6 +165,21 @@ export default function GameRoom() {
     setRevealData(null);
     setGameStarted(false);
     setGameInfo(null);
+  }
+
+  async function handleQuit() {
+    const stored = sessionStorage.getItem(SESSION_KEY);
+    const auth = stored ? JSON.parse(stored).Authorization : "";
+    try {
+      await fetch(`http://localhost:3000/room/quit?roomId=${roomId}`, {
+        method: "DELETE",
+        headers: { Authorization: auth },
+      });
+    } catch {
+      // 실패해도 나가기
+    }
+    socketRef.current?.disconnect();
+    router.push("/");
   }
 
   if (!session) return null;
@@ -224,6 +250,12 @@ export default function GameRoom() {
               }`}
             />
             <span className="text-sm font-semibold text-gray-600">{session.nickname}</span>
+            <button
+              onClick={handleQuit}
+              className="ml-1 px-2.5 py-1 bg-rose-500 text-white text-xs font-bold rounded-lg hover:bg-rose-600 hover:scale-[1.02] transition-all active:scale-95"
+            >
+              나가기
+            </button>
           </div>
         </div>
 
@@ -300,15 +332,24 @@ export default function GameRoom() {
                     {msg.nickname}
                   </span>
                 )}
-                <span
-                  className={`inline-block px-3 py-2 rounded-2xl text-sm font-medium max-w-[78%] break-words ${
-                    msg.nickname === session.nickname
-                      ? "bg-violet-600 text-white rounded-tr-sm"
-                      : "bg-white text-gray-700 shadow-sm rounded-tl-sm"
+                <div
+                  className={`flex items-end gap-1 ${
+                    msg.nickname === session.nickname ? "flex-row-reverse" : "flex-row"
                   }`}
                 >
-                  {msg.text}
-                </span>
+                  <span
+                    className={`inline-block px-3 py-2 rounded-2xl text-sm font-medium max-w-[78%] break-words ${
+                      msg.nickname === session.nickname
+                        ? "bg-violet-600 text-white rounded-tr-sm"
+                        : "bg-white text-gray-700 shadow-sm rounded-tl-sm"
+                    }`}
+                  >
+                    {msg.text}
+                  </span>
+                  {msg.time && (
+                    <span className="text-[10px] text-gray-400 flex-shrink-0">{msg.time}</span>
+                  )}
+                </div>
               </div>
             )
           )}
