@@ -1,4 +1,13 @@
-import { Controller, Get, HttpCode, HttpStatus, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Headers,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { RoomService } from './room.service';
 
 @Controller('room')
@@ -11,10 +20,10 @@ export class RoomController {
     return this.roomService.createRoom();
   }
 
-  @Get('join')
+  @Post('join')
   @HttpCode(HttpStatus.OK)
-  joinRoom(@Query('roomId') roomId: string) {
-    return this.roomService.joinRoom(roomId);
+  joinRoom(@Body('roomId') roomId: string, jwtToken: string) {
+    return this.roomService.joinRoom(roomId, jwtToken);
   }
 
   @Get('quit')
