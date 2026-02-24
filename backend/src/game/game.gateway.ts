@@ -1,9 +1,10 @@
 import {
+  OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import { CustomJwtService } from 'src/jwt/custom-jwt.service';
 import { RedisService } from 'src/redis/redis.service';
 import { ResultCategory } from './result.category';
@@ -15,7 +16,7 @@ import { ResultCategory } from './result.category';
     origin: '*',
   },
 })
-export class GameGateway {
+export class GameGateway implements OnGatewayDisconnect {
   constructor(
     private readonly jwtService: CustomJwtService,
     private readonly redis: RedisService,
@@ -160,5 +161,51 @@ export class GameGateway {
     });
 
     console.log('게임 시작');
+  }
+
+  async handleDisconnect(client: Socket) {
+    console.log('연결 끊김:', client.id);
+
+    const roomId = client.data.roomId;
+    const nickname = client.data.nickname;
+
+    if (!roomId) {
+      console.log('roomId 없음 → 처리 안함');
+      return;
+    }
+
+    const key = `room:${roomId}`;
+
+    try {
+      // 방 존재 확인
+      const room = await this.redis.client.hgetall(key);
+
+      if (Object.keys(room).length === 0) {
+        console.log('이미 삭제된 방');
+        return;
+      }
+
+      // 인원 감소
+      await this.redis.client.hincrby(key, 'players', -1);
+
+      const players = Number(await this.redis.client.hget(key, 'players'));
+      const maxPlayers = room.maxPlayers;
+
+      console.log(`현재 인원: ${players}`);
+
+      // 방에 남은 사람들에게 알림
+      client.to(roomId).emit('user_left', {
+        socketId: client.id,
+        nickname,
+      });
+
+      // 인원 0명이면 방 삭제
+      if (players <= 0) {
+        await this.redis.client.del(key);
+        console.log('🗑 방 삭제됨');
+      }
+    } catch (err) {
+      console.error('disconnect 처리 중 에러:', err);
+    }
   }
 }
