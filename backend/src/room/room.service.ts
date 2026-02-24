@@ -63,6 +63,7 @@ export class RoomService {
 
   async quitRoom(roomId: string) {
     const key = `room:${roomId}`;
+    const membersKey = `room:${roomId}:members`;
 
     const room = await this.redis.client.hgetall(key);
     const maxPlayers = Number(room.maxPlayers);
@@ -77,9 +78,10 @@ export class RoomService {
     // 현재 인원 조회
     const players = Number(await this.redis.client.hget(key, 'players'));
 
-    // 인원이 0명이면 방 삭제
+    // 인원이 0명이면 방(hash)과 members(Set) 모두 삭제
     if (players <= 0) {
       await this.redis.client.del(key);
+      await this.redis.client.del(membersKey);
       return { roomDeleted: true, players: 0, maxPlayers };
     }
 
