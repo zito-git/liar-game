@@ -53,6 +53,12 @@ export class GameGateway implements OnGatewayDisconnect {
       return;
     }
 
+    // 게임 진행 중이면 입장 차단
+    if (room.status === 'PLAYING') {
+      client.emit('join_error', { message: '게임이 진행 중인 방입니다.' });
+      return;
+    }
+
     // JWT 검증
     const tokenResult = await this.jwtService.verifyJwt(jwt);
     if (!tokenResult) {
@@ -99,6 +105,7 @@ export class GameGateway implements OnGatewayDisconnect {
       nickname,
       socketId: client.id,
       members,
+      maxPlayers,
     });
 
     // 다른 사람들에게 (업데이트된 멤버 목록 포함)

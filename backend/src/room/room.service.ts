@@ -26,7 +26,7 @@ export class RoomService {
     const uuidRoom: string = randomUUID();
     const key = `room:${uuidRoom}`;
     const time: number = 60 * 30;
-    const maxPlayer = 4;
+    const maxPlayer = 10;
 
     await this.redis.client.hset(key, {
       status: RoomStatus.WAIT,
@@ -51,6 +51,10 @@ export class RoomService {
 
     if (Object.keys(room).length === 0) {
       throw new NotFoundException('방이 존재하지 않습니다.');
+    }
+
+    if (room.status === 'PLAYING') {
+      throw new BadRequestException('게임이 진행 중인 방입니다.');
     }
 
     return {
