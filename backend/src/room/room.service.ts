@@ -69,7 +69,7 @@ export class RoomService {
     const key = `room:${roomId}`;
 
     const room = await this.redis.client.hgetall(key);
-    const maxPlayers = room.maxPlayers;
+    const maxPlayers = Number(room.maxPlayers);
 
     if (Object.keys(room).length === 0) {
       throw new NotFoundException('방이 존재하지 않습니다.');
