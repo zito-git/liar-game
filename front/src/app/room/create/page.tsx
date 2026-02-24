@@ -30,7 +30,7 @@ export default function CreateRoom() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("http://localhost:3000/room/create", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/room/create`, {
         method: "POST",
       });
       if (!res.ok) throw new Error("방 생성에 실패했어요.");

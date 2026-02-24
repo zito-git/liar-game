@@ -51,7 +51,7 @@ export default function Home() {
     setError("");
 
     try {
-      const res = await fetch("http://localhost:3000/room/nickname", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/room/nickname`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nickname: nickname.trim() }),

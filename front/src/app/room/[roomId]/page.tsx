@@ -72,7 +72,7 @@ export default function GameRoom() {
       setMessages((prev) => [...prev, { type, text, nickname, time }]);
     };
 
-    const socket = io("http://localhost:80/game", { transports: ["websocket"] });
+    const socket = io(`${process.env.NEXT_PUBLIC_WS_URL}/game`, { transports: ["websocket"] });
     socketRef.current = socket;
 
     socket.on("connect", () => {
@@ -173,7 +173,7 @@ export default function GameRoom() {
     const stored = sessionStorage.getItem(SESSION_KEY);
     const auth = stored ? JSON.parse(stored).Authorization : "";
     try {
-      await fetch(`http://localhost:3000/room/quit?roomId=${roomId}`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/room/quit?roomId=${roomId}`, {
         method: "DELETE",
         headers: { Authorization: auth },
       });
