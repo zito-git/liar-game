@@ -7,7 +7,7 @@ import { CustomJwtService } from './custom-jwt.service';
     JwtModule.register({
       global: true,
       secret: 'jwtSecret',
-      signOptions: { expiresIn: '120m' },
+      signOptions: { expiresIn: '720m' },
     }),
   ],
   providers: [CustomJwtService],
