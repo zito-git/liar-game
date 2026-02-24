@@ -46,4 +46,10 @@ export class QuitRoomResponseDto {
 export class CreateNicknameResponseDto {
   @ApiProperty({ example: 'helloTest01', description: '생성된 닉네임' })
   nickname: string;
+
+  @ApiProperty({
+    example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6Ik...',
+    description: '생성된 jwt 토큰',
+  })
+  Authorization: string;
 }
