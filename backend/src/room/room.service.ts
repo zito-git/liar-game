@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { CustomJwtModule } from 'src/jwt/custom-jwt.module';
@@ -39,7 +40,11 @@ export class RoomService {
     return { roomId: uuidRoom };
   }
 
-  async joinRoom(roomId: string) {
+  async joinRoom(roomId: string, jwtToken: string) {
+    //jwt 토큰 검증
+    if ((await this.jwt.verifyJwt(jwtToken)) == null) {
+      throw new UnauthorizedException('jwt 검증실패');
+    }
     const key = `room:${roomId}`;
 
     const room = await this.redis.client.hgetall(key);
