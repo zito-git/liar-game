@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Game Chat</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+      body {
+        font-family: Arial;
+        background: #f4f4f4;
+      }
+      #chat {
+        width: 500px;
+        height: 250px;
+        border: 1px solid #ccc;
+        overflow-y: auto;
+        padding: 10px;
+        background: white;
+        margin-bottom: 10px;
+      }
+      .system {
+        color: gray;
+      }
+      .role-box {
+        width: 500px;
+        padding: 10px;
+        margin-bottom: 10px;
+        background: #fff3cd;
+        border: 1px solid #ffeeba;
+      }
+      button {
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Game Chat Test</h2>
+
+    <div>
+      <input id="token" placeholder="JWT 토큰 입력" style="width: 400px" />
+      <button onclick="connect()">연결</button>
+      <button onclick="startGame()">게임 시작</button>
+    </div>
+
+    <br />
+
+    <div class="role-box" id="roleBox">🎮 게임 시작을 기다리는 중...</div>
+
+    <div id="chat"></div>
+
+    <input id="message" placeholder="메시지 입력" style="width: 400px" />
+    <button onclick="sendMessage()">전송</button>
+
+    <script>
+      let socket;
+      const roomId = 'e8087473-4eda-4122-b14b-bb714aa68a3c';
+
+      function appendMessage(text, className = '') {
+        const div = document.createElement('div');
+        div.className = className;
+        div.innerText = text;
+        document.getElementById('chat').appendChild(div);
+        document.getElementById('chat').scrollTop = 9999;
+      }
+
+      function connect() {
+        const token = document.getElementById('token').value;
+
+        //  auth 제거
+        socket = io('http://localhost:80/game', {
+          transports: ['websocket'],
+        });
+
+        socket.on('connect', () => {
+          appendMessage('[SYSTEM] 서버 연결됨: ' + socket.id, 'system');
+
+          //  jwt를 payload로 같이 보냄
+          socket.emit('join', {
+            roomId,
+            jwt: token,
+          });
+        });
+
+        socket.on('join_success', (data) => {
+          appendMessage('[SYSTEM] 방 입장 성공: ' + data.roomId, 'system');
+        });
+
+        socket.on('join_error', (data) => {
+          alert(data.message);
+        });
+
+        socket.on('user_joined', (data) => {
+          appendMessage('[SYSTEM] 유저 입장: ' + data.nickname, 'system');
+        });
+
+        socket.on('chat_message', (data) => {
+          appendMessage(`[${data.nickname}] ${data.message}`);
+        });
+
+        socket.on('game_info', (data) => {
+          const roleBox = document.getElementById('roleBox');
+
+          if (data.role === 'liar') {
+            roleBox.innerHTML = `🕵️ 당신은 <b>라이어</b><br>카테고리: <b>${data.category}</b>`;
+          } else {
+            roleBox.innerHTML = `😊 당신은 <b>시민</b><br>정답: <b>${data.answer}</b>`;
+          }
+        });
+
+        socket.on('game_started', () => {
+          appendMessage('[SYSTEM] 게임이 시작되었습니다!', 'system');
+        });
+
+        socket.on('game_error', (data) => {
+          alert(data.message);
+        });
+
+        socket.on('disconnect', () => {
+          appendMessage('[SYSTEM] 서버 연결 끊김', 'system');
+        });
+      }
+
+      function sendMessage() {
+        const input = document.getElementById('message');
+        const message = input.value;
+
+        if (!socket || !socket.connected) {
+          alert('먼저 연결하세요.');
+          return;
+        }
+
+        socket.emit('chat', { message });
+        input.value = '';
+      }
+
+      function startGame() {
+        if (!socket || !socket.connected) {
+          alert('먼저 연결하세요.');
+          return;
+        }
+
+        socket.emit('game_start');
+      }
+    </script>
+  </body>
+</html>
