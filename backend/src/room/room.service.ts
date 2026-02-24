@@ -41,7 +41,7 @@ export class RoomService {
   }
 
   async joinRoom(roomId: string, jwtToken: string) {
-    //jwt 토큰 검증
+    // JWT 검증 + 방 존재 확인만 수행 (인원 관리는 소켓에서 단독 담당)
     if ((await this.jwt.verifyJwt(jwtToken)) == null) {
       throw new UnauthorizedException('jwt 검증실패');
     }
@@ -53,16 +53,12 @@ export class RoomService {
       throw new NotFoundException('방이 존재하지 않습니다.');
     }
 
-    const players = Number(room.players);
-    const maxPlayers = Number(room.maxPlayers);
-
-    if (players >= maxPlayers) {
-      throw new BadRequestException('방이 가득 찼습니다.');
-    }
-
-    await this.redis.client.hincrby(key, 'players', 1);
-
-    return { roomId, roomJoin: true, players: players + 1, maxPlayers };
+    return {
+      roomId,
+      roomJoin: true,
+      players: Number(room.players),
+      maxPlayers: Number(room.maxPlayers),
+    };
   }
 
   async quitRoom(roomId: string) {
