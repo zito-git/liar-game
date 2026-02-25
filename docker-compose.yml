@@ -1,0 +1,15 @@
+services:
+  liar-front:
+    build: .
+    container_name: liar-front
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:5000:5000"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    external: true
