@@ -8,6 +8,7 @@
 
 - [게임 소개](#게임-소개)
 - [기술 스택](#기술-스택)
+- [env](#env)
 - [프로젝트 구조](#프로젝트-구조)
 - [시작하기](#시작하기)
 - [게임 플로우](#게임-플로우)
@@ -26,6 +27,24 @@
 - **라이어**: 키워드 없이 카테고리(예: `음식`)만 알고 있습니다.
 - **목표**: 시민들은 라이어를 찾아야 하고, 라이어는 들키지 않아야 합니다.
 - 최대 **10명**이 한 방에 참여할 수 있습니다.
+
+---
+
+## env
+
+### backend env
+
+```
+REDIS_SERVER=localhost
+REDIS_PORT=1234
+```
+
+### front env
+
+```
+NEXT_PUBLIC_API_URL=https://api.test.com
+NEXT_PUBLIC_WS_URL=https://wss.test.com
+```
 
 ---
 
@@ -99,8 +118,8 @@ npm install
 npm run start:dev
 ```
 
-백엔드는 기본적으로 `http://localhost:3000`에서 실행됩니다.
-Swagger API 문서: `http://localhost:3000/api`
+백엔드는 기본적으로 `http://localhost:5001`에서 실행됩니다.
+Swagger API 문서: `http://localhost:5000/api`
 
 ### 2. 프론트엔드 실행
 
@@ -110,7 +129,7 @@ npm install
 npm run dev
 ```
 
-프론트엔드는 기본적으로 `http://localhost:3001`에서 실행됩니다.
+프론트엔드는 기본적으로 `http://localhost:5000`에서 실행됩니다.
 
 ### 환경 변수
 
@@ -157,7 +176,7 @@ REDIS_PORT=6379
 
 ### REST API
 
-기본 URL: `http://localhost:3000`
+기본 URL: `http://localhost:5001`
 
 | Method   | Endpoint                | Body                   | 설명                             |
 | -------- | ----------------------- | ---------------------- | -------------------------------- |
@@ -174,7 +193,7 @@ REDIS_PORT=6379
 
 ## WebSocket 이벤트
 
-**URL**: `ws://localhost:80/game`
+**URL**: `ws://localhost:5001/game`
 **Transport**: `websocket`
 
 ### 클라이언트 → 서버

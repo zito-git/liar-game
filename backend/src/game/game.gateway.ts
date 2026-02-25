@@ -17,7 +17,7 @@ const LUA_ADD_MEMBER = `
   return 1
 `;
 
-@WebSocketGateway(80, {
+@WebSocketGateway({
   namespace: 'game',
   transports: ['websocket'],
   cors: {
