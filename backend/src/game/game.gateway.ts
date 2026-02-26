@@ -9,8 +9,11 @@ import { CustomJwtService } from 'src/jwt/custom-jwt.service';
 import { RedisService } from 'src/redis/redis.service';
 import { ResultCategory } from './result.category';
 
-// 원자적 정원 체크 + 멤버 추가 Lua 스크립트
+// 원자적 닉네임 중복 체크 + 정원 체크 + 멤버 추가 Lua 스크립트
+// 반환값: -1 = 닉네임 중복, 0 = 방 가득 참, 1 = 성공
 const LUA_ADD_MEMBER = `
+  local exists = redis.call('SISMEMBER', KEYS[1], ARGV[2])
+  if exists == 1 then return -1 end
   local count = redis.call('SCARD', KEYS[1])
   if count >= tonumber(ARGV[1]) then return 0 end
   redis.call('SADD', KEYS[1], ARGV[2])
@@ -78,7 +81,12 @@ export class GameGateway implements OnGatewayDisconnect {
       nickname,
     )) as number;
 
-    if (!added) {
+    if (added === -1) {
+      client.emit('join_error', { message: '이미 사용 중인 닉네임입니다.' });
+      return;
+    }
+
+    if (added === 0) {
       client.emit('join_error', { message: '방이 가득 찼습니다.' });
       return;
     }
